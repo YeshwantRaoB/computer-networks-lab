@@ -6,14 +6,11 @@ const MainContent = ({ currentExperiment }) => {
   const [copiedIndex, setCopiedIndex] = useState(null);
   const containerRef = useRef(null);
 
-  // Listen for selection events from Sidebar and scroll main container to top smoothly
+  // Listen for selection events from Sidebar and scroll to top smoothly
   useEffect(() => {
     const onExperimentSelected = () => {
-      if (containerRef.current && typeof containerRef.current.scrollTo === 'function') {
-        containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
+      // Always scroll the window to top for better user experience
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     };
     window.addEventListener('experimentSelected', onExperimentSelected);
     return () => window.removeEventListener('experimentSelected', onExperimentSelected);
@@ -21,9 +18,7 @@ const MainContent = ({ currentExperiment }) => {
 
   // Also scroll when currentExperiment changes (fallback)
   useEffect(() => {
-    if (containerRef.current && typeof containerRef.current.scrollTo === 'function') {
-      containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentExperiment]);
 
   const copyToClipboard = async (text, index) => {
