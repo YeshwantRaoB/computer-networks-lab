@@ -69,7 +69,7 @@ const Header = () => {
               <ThemeToggle />
 
               {/* Floating particles effect */}
-              <div className={`absolute -inset-2 rounded-full transition-all duration-500 ${
+              <div className={`absolute -inset-2 rounded-full transition-all duration-500 pointer-events-none ${
                 isDarkMode ? 'opacity-30' : 'opacity-20'
               }`}>
                 <div className={`absolute top-0 left-2 w-1 h-1 rounded-full animate-ping ${
