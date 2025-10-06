@@ -4,6 +4,7 @@ import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import Footer from './components/Footer';
+import ScrollToTop from './components/ScrollToTop';
 import './App.css';
 
 function App({ currentExperiment, setCurrentExperiment, experiments }) {
@@ -27,6 +28,7 @@ function App({ currentExperiment, setCurrentExperiment, experiments }) {
         />
       </div>
       <Footer />
+      <ScrollToTop />
     </div>
   );
 }
