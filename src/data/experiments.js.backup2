@@ -1,0 +1,586 @@
+export const experiments = [
+  {
+    id: 1,
+    title: "Experiment 1: Point-to-Point Network with Duplex Links",
+    description: "Implement three nodes point-to-point network with duplex links between them. Set the queue size, vary the bandwidth, and find the number of packets dropped.",
+    content: {
+      objective: "Implement a three-node point-to-point network with duplex links, configure queue sizes and bandwidth, and analyze packet drops.",
+      softwareRequirements: [
+        "NS2 (Network Simulator 2)",
+        "NAM (Network Animator)",
+        "TCL (Tool Command Language)"
+      ],
+      steps: [
+        {
+          number: 1,
+          title: "Open Ubuntu Terminal",
+          content: "Launch the Ubuntu terminal on your system."
+        },
+        {
+          number: 2,
+          title: "Install Required Software",
+          content: "Install NS2, NAM, and TCL using the following command:",
+          code: "sudo apt-get install ns2 nam tcl",
+          note: "Enter your password when prompted."
+        },
+        {
+          number: 3,
+          title: "Verify NS2 Installation",
+          content: "Check if NS2 runs properly:",
+          code: "ns"
+        },
+        {
+          number: 4,
+          title: "Create TCL Script",
+          content: "Create a new file named ns1.tcl using nano editor:",
+          code: "nano ns1.tcl"
+        },
+        {
+          number: 5,
+          title: "Write the TCL Program",
+          content: "Copy and paste the following TCL code into the file:",
+          tclCode: `# Create Simulator
+set ns [new Simulator]
+
+# Open Trace file and NAM file
+set ntrace [open prog1.tr w]
+$ns trace-all $ntrace
+
+set namfile [open prog1.nam w]
+$ns namtrace-all $namfile
+
+# Finish Procedure
+proc Finish {} {
+    global ns ntrace namfile
+
+    # Dump all the trace data and close the files
+    $ns flush-trace
+    close $ntrace
+    close $namfile
+
+    # Show the number of packets dropped
+    set drops [exec grep -c "^d" prog1.tr]
+    puts "The number of packet drops is $drops"
+
+    # Execute the nam animation file
+    exec nam prog1.nam &
+
+    exit 0
+}
+
+# Create 3 nodes
+set n0 [$ns node]
+set n1 [$ns node]
+set n2 [$ns node]
+
+# Label the nodes
+$n0 label "TCP Source"
+$n2 label "Sink"
+
+# Set the color
+$ns color 1 blue
+
+# Create Links between nodes
+# You can modify the bandwidth to observe the variation in packet drop
+$ns duplex-link $n0 $n1 1Mb 10ms DropTail
+$ns duplex-link $n1 $n2 1Mb 10ms DropTail
+
+# Make the Link Orientation
+$ns duplex-link-op $n0 $n1 orient right
+$ns duplex-link-op $n1 $n2 orient right
+
+# Set Queue Size
+# You can modify the queue length as well to observe the variation in packet drop
+$ns queue-limit $n0 $n1 10
+$ns queue-limit $n1 $n2 10
+
+# Set up a Transport layer connection
+set tcp0 [new Agent/TCP]
+$ns attach-agent $n0 $tcp0
+
+set sink0 [new Agent/TCPSink]
+$ns attach-agent $n2 $sink0
+
+$ns connect $tcp0 $sink0
+$tcp0 set class_ 1
+
+# Set up an application layer Traffic
+set cbr0 [new Application/Traffic/CBR]
+$cbr0 set type_ CBR
+$cbr0 set packetSize_ 100
+$cbr0 set rate_ 1Mb
+$cbr0 set random_ false
+$cbr0 attach-agent $tcp0
+
+# Schedule Events
+$ns at 0.0 "$cbr0 start"
+$ns at 5.0 "Finish"
+
+# Run the Simulation
+$ns run`
+        },
+        {
+          number: 6,
+          title: "Save and Run the Script",
+          content: "Save the file (Ctrl+X, then type 'y' to confirm) and run the script:",
+          code: "ns ns1.tcl"
+        },
+        {
+          number: 7,
+          title: "View Trace File",
+          content: "Open the generated trace file to analyze the results:",
+          code: "nano prog1.tr"
+        },
+        {
+          number: 8,
+          title: "Experiment with Different Queue Sizes",
+          content: "Modify the queue size in the TCL script and observe the variation in packet drops:",
+          codeBlock: {
+            from: "$ns queue-limit $n0 $n1 10\n$ns queue-limit $n1 $n2 10",
+            to: "$ns queue-limit $n0 $n1 20\n$ns queue-limit $n1 $n2 25"
+          },
+          note: "Repeat steps 5-7 to compare results."
+        }
+      ],
+      expectedOutput: [
+        "Network animation in NAM",
+        "Number of packets dropped based on queue size and bandwidth settings",
+        "Trace file analysis showing packet transmission details"
+      ],
+      keyObservations: [
+        "Larger queue sizes generally result in fewer packet drops",
+        "Lower bandwidth settings may cause more congestion and packet drops",
+        "The trace file shows detailed packet-level information"
+      ]
+    }
+  },
+  // Placeholder experiments for future implementation
+  {
+    id: 2,
+    title: "Experiment 2: Transmission of Ping Messages over 6-Node Network with Congestion Analysis",
+    description: "Implement the transmission of ping messages over a network topology consisting of 6 nodes and find the number of packets dropped due to congestion.",
+    content: {
+      objective: "Create a 6-node network topology, implement ping message transmission, generate congestion using CBR traffic, and analyze packet drops due to congestion.",
+      softwareRequirements: [
+        "NS2 (Network Simulator 2)",
+        "NAM (Network Animator)",
+        "TCL (Tool Command Language)",
+        "Terminal/Command Prompt"
+      ],
+      steps: [
+        {
+          number: 1,
+          title: "Open Terminal",
+          content: "Launch the terminal on your Ubuntu/Linux system."
+        },
+        {
+          number: 2,
+          title: "Install Required Software",
+          content: "Ensure NS2, NAM, and TCL are installed:",
+          code: "sudo apt-get install ns2 nam tcl"
+        },
+        {
+          number: 3,
+          title: "Create TCL Script File",
+          content: "Create a new file named ns2.tcl using nano editor:",
+          code: "nano ns2.tcl"
+        },
+        {
+          number: 4,
+          title: "Write the TCL Program Script",
+          content: "Copy and paste the following TCL code into the file:",
+          tclCode: `# Create Simulator
+set ns [new Simulator]
+
+# Use colors to differentiate the traffic
+$ns color 1 Blue
+$ns color 2 Red
+
+# Open trace and NAM trace files
+set ntrace [open prog3.tr w]
+$ns trace-all $ntrace
+
+set namfile [open prog3.nam w]
+$ns namtrace-all $namfile
+
+# Finish Procedure
+proc Finish {} {
+    global ns ntrace namfile
+
+    # Dump all trace data and close the files
+    $ns flush-trace
+    close $ntrace
+    close $namfile
+
+    # Find the number of ping packets dropped
+    puts "The number of ping packets dropped are:"
+    set drops [exec grep "^d" prog3.tr | cut -d " " -f 5 | grep -c "ping"]
+    puts "$drops"
+
+    # Execute the nam animation file
+    exec nam prog3.nam &
+
+    exit 0
+}
+
+# Create six nodes
+for {set i 0} {$i < 6} {incr i} {
+    set n($i) [$ns node]
+}
+
+# Connect the nodes linearly: n(0)-n(1)-...-n(5)
+for {set j 0} {$j < 5} {incr j} {
+    $ns duplex-link $n($j) $n([expr $j+1]) 0.1Mb 10ms DropTail
+}
+
+# Define the recv function for Agent/Ping
+Agent/Ping instproc recv {from rtt} {
+    $self instvar node_
+    puts "node [$node_ id] received ping answer from $from with round trip time $rtt ms"
+}
+
+# Create two ping agents and attach them to n(0) and n(5)
+set p0 [new Agent/Ping]
+$p0 set class_ 1
+$ns attach-agent $n(0) $p0
+
+set p1 [new Agent/Ping]
+$p1 set class_ 1
+$ns attach-agent $n(5) $p1
+
+$ns connect $p0 $p1
+
+# Set queue size and monitor the queue
+# Queue size is set to 2 to observe the drop in ping packets
+$ns queue-limit $n(2) $n(3) 2
+$ns duplex-link-op $n(2) $n(3) queuePos 0.5
+
+# Create Congestion
+# Generate a huge CBR traffic between n(2) and n(4)
+set tcp0 [new Agent/TCP]
+$tcp0 set class_ 2
+$ns attach-agent $n(2) $tcp0
+
+set sink0 [new Agent/TCPSink]
+$ns attach-agent $n(4) $sink0
+$ns connect $tcp0 $sink0
+
+# Apply CBR traffic over TCP
+set cbr0 [new Application/Traffic/CBR]
+$cbr0 set packetSize_ 500
+$cbr0 set rate_ 1Mb
+$cbr0 attach-agent $tcp0
+
+# Schedule events
+$ns at 0.2 "$p0 send"
+$ns at 0.4 "$p1 send"
+$ns at 0.4 "$cbr0 start"
+$ns at 0.8 "$p0 send"
+$ns at 1.0 "$p1 send"
+$ns at 1.2 "$cbr0 stop"
+$ns at 1.4 "$p0 send"
+$ns at 1.6 "$p1 send"
+$ns at 1.8 "Finish"
+
+# Run the Simulation
+$ns run`
+        },
+        {
+          number: 5,
+          title: "Save the File",
+          content: "Save the file using Ctrl+X, then press 'y' to confirm and Enter to save."
+        },
+        {
+          number: 6,
+          title: "Run the Script",
+          content: "Execute the TCL script:",
+          code: "ns ns2.tcl"
+        },
+        {
+          number: 7,
+          title: "Analyze the Output",
+          content: "The script will display the number of ping packets dropped and launch NAM for visualization."
+        },
+        {
+          number: 8,
+          title: "View Trace File (Optional)",
+          content: "Examine the detailed trace file for packet-level analysis:",
+          code: "nano prog3.tr"
+        },
+        {
+          number: 9,
+          title: "Experiment with Different Queue Sizes",
+          content: "Modify the queue size to observe different congestion levels:",
+          codeBlock: {
+            from: "$ns queue-limit $n(2) $n(3) 2",
+            to: "$ns queue-limit $n(2) $n(3) 5"
+          },
+          note: "Larger queue sizes will reduce packet drops but may increase latency."
+        },
+        {
+          number: 10,
+          title: "Modify CBR Traffic Rate",
+          content: "Adjust the CBR traffic rate to control congestion intensity:",
+          codeBlock: {
+            from: "$cbr0 set rate_ 1Mb",
+            to: "$cbr0 set rate_ 2Mb"
+          },
+          note: "Higher CBR rates create more congestion and packet drops."
+        }
+      ],
+      expectedOutput: [
+        "Number of ping packets dropped due to congestion",
+        "NAM visualization showing network topology and packet flow",
+        "Console output showing ping message exchanges",
+        "Trace file with detailed packet transmission records"
+      ],
+      keyObservations: [
+        "Queue size significantly affects packet drop rate - smaller queues drop more packets",
+        "CBR traffic creates congestion that interferes with ping message transmission",
+        "Packet drops occur when network buffers are full due to congestion",
+        "The linear topology shows how congestion propagates through the network",
+        "Ping messages may be dropped or delayed when competing with high-rate CBR traffic"
+      ]
+    }
+  },
+  {
+    id: 3,
+    title: "Experiment 3: Ethernet LAN Implementation with N Nodes and Congestion Window Analysis",
+    description: "Implement an ethernet lan using n nodes and set multiple traffic nodes and plot congestion window for different source / destination",
+    content: {
+      objective: "Implement an Ethernet LAN using N nodes with multiple traffic nodes, set up multiple TCP connections, and plot congestion windows for different source/destination pairs using gnuplot.",
+      softwareRequirements: [
+        "NS2 (Network Simulator 2)",
+        "NAM (Network Animator)",
+        "TCL (Tool Command Language)",
+        "Gnuplot (for plotting congestion windows)"
+      ],
+      steps: [
+        {
+          number: 1,
+          title: "Open Terminal",
+          content: "Launch the terminal on your Ubuntu/Linux system."
+        },
+        {
+          number: 2,
+          title: "Install Required Software",
+          content: "Install NS2, NAM, TCL, and Gnuplot using the following commands:",
+          code: "sudo apt-get install ns2 nam tcl\nsudo apt install gnuplot"
+        },
+        {
+          number: 3,
+          title: "Create TCL Script File",
+          content: "Create a new file named prog5.tcl using nano editor:",
+          code: "nano prog5.tcl"
+        },
+        {
+          number: 4,
+          title: "Write the TCL Program Script",
+          content: "Copy and paste the following TCL code into the file:",
+          tclCode: "# Create Simulator\nset ns [new Simulator]\n\n# Use colors to differentiate the traffics\n$ns color 1 Blue\n$ns color 2 Red\n\n# Open trace and NAM trace files\nset ntrace [open prog5.tr w]\n$ns trace-all $ntrace\nset namfile [open prog5.nam w]\n$ns namtrace-all $namfile\n\n# Use flat files to create congestion graph windows (use .dat for compatibility)\nset winFile0 [open WinFile0.dat w]\nset winFile1 [open WinFile1.dat w]\n\n# write headers (useful for gnuplot / inspection)\nputs $winFile0 \"# time cwnd\"\nputs $winFile1 \"# time cwnd\"\n\n# Simulation sampling interval (seconds)\nset sample_interval 0.1\n\n# Finish Procedure\nproc Finish {} {\n    # Dump all trace data and close the files\n    global ns ntrace namfile winFile0 winFile1 sample_interval\n\n    $ns flush-trace\n    close $ntrace\n    close $namfile\n\n    # Close plot files\n    close $winFile0\n    close $winFile1\n\n    # Optionally run NAM (comment/uncomment as needed)\n    # exec nam prog5.nam &\n\n    # Create a simple gnuplot script (saved next to the dat files)\n    set gpfile [open \"plot_cwnd.gp\" w]\n    puts $gpfile \"set terminal png size 1200,700\"\n    puts $gpfile \"set output 'cwnd_plot.png'\"\n    puts $gpfile \"set title 'Congestion Window vs Time'\"\n    puts $gpfile \"set xlabel 'Time (s)'\"\n    puts $gpfile \"set ylabel 'cwnd (bytes)'\"\n    puts $gpfile \"set grid\"\n    puts $gpfile \"plot 'WinFile0.dat' using 1:2 with lines title 'TCP0', \\\\.\n    puts $gpfile \"     'WinFile1.dat' using 1:2 with lines title 'TCP1'\"\n    close $gpfile\n\n    # Launch gnuplot to create the PNG and keep an interactive window as well.\n    # The '-persist' option will keep an X window open if your system supports it.\n    exec gnuplot -persist plot_cwnd.gp &\n\n    exit 0\n}\n\n# Plot Window Procedure\nproc PlotWindow {tcpSource file} {\n    global ns sample_interval\n\n    # time between samples is read from the global variable\n    set now [$ns now]\n\n    # safely fetch cwnd_ (some agents may not expose it or may be gone)\n    if {[catch {set cwnd [$tcpSource set cwnd_]} err]} {\n        # if error, write 0 (or you may choose to skip)\n        set cwnd 0\n    }\n\n    # write sample\n    puts $file \"$now $cwnd\"\n\n    # schedule next sample only if simulation is still running (we rely on Finish to exit)\n    set nextTime [expr {$now + $sample_interval}]\n    $ns at $nextTime \"PlotWindow $tcpSource $file\"\n}\n\n# Create 6 nodes\nfor {set i 0} {$i < 6} {incr i} {\n    set n($i) [$ns node]\n}\n\n# Create duplex links between the nodes\n$ns duplex-link $n(0) $n(2) 2Mb 10ms DropTail\n$ns duplex-link $n(1) $n(2) 2Mb 10ms DropTail\n$ns duplex-link $n(2) $n(3) 0.6Mb 100ms DropTail\n\n# Nodes n(3), n(4) and n(5) are considered in a LAN\nset lan [$ns newLan \"$n(3) $n(4) $n(5)\" 0.5Mb 40ms LL Queue/DropTail MAC/802_3 Channel]\n\n# Orientation to the nodes\n$ns duplex-link-op $n(0) $n(2) orient right-down\n$ns duplex-link-op $n(1) $n(2) orient right-up\n$ns duplex-link-op $n(2) $n(3) orient right\n\n# Setup queue between n(2) and n(3) and monitor the queue\n$ns queue-limit $n(2) $n(3) 20\n$ns duplex-link-op $n(2) $n(3) queuePos 0.5\n\n# Set error model on link n(2) to n(3)\nset loss_module [new ErrorModel]\n$loss_module ranvar [new RandomVariable/Uniform]\n$loss_module drop-target [new Agent/Null]\n$ns lossmodel $loss_module $n(2) $n(3)\n\n# Set up the TCP connection between n(0) and n(4)\nset tcp0 [new Agent/TCP/Newreno]\n$tcp0 set fid_ 1\n$tcp0 set window_ 8000\n$tcp0 set packetSize_ 552\n$ns attach-agent $n(0) $tcp0\n\nset sink0 [new Agent/TCPSink/DelAck]\n$ns attach-agent $n(4) $sink0\n$ns connect $tcp0 $sink0\n\n# Apply FTP Application over TCP\nset ftp0 [new Application/FTP]\n$ftp0 attach-agent $tcp0\n$ftp0 set type_ FTP\n\n# Set up another TCP connection between n(5) and n(1)\nset tcp1 [new Agent/TCP/Newreno]\n$tcp1 set fid_ 2\n$tcp1 set window_ 8000\n$tcp1 set packetSize_ 552\n$ns attach-agent $n(5) $tcp1\n\nset sink1 [new Agent/TCPSink/DelAck]\n$ns attach-agent $n(1) $sink1\n$ns connect $tcp1 $sink1\n\n# Apply FTP application over TCP\nset ftp1 [new Application/FTP]\n$ftp1 attach-agent $tcp1\n$ftp1 set type_ FTP\n\n# Schedule Events\n$ns at 0.1 \"$ftp0 start\"\n$ns at 0.1 \"PlotWindow $tcp0 $winFile0\"\n$ns at 0.5 \"$ftp1 start\"\n$ns at 0.5 \"PlotWindow $tcp1 $winFile1\"\n$ns at 25.0 \"$ftp0 stop\"\n$ns at 25.1 \"$ftp1 stop\"\n$ns at 25.2 \"Finish\"\n\n# Run the simulation\n$ns run"
+        },
+        {
+          number: 5,
+          title: "Save the File",
+          content: "Save the file using Ctrl+X, then press 'y' to confirm and Enter to save."
+        },
+        {
+          number: 6,
+          title: "Run the Script",
+          content: "Execute the TCL script:",
+          code: "ns prog5.tcl"
+        },
+        {
+          number: 7,
+          title: "View Generated Files",
+          content: "After the simulation completes, you will see:"
+        },
+        {
+          number: 8,
+          title: "View Congestion Window Plot",
+          content: "Gnuplot will automatically generate and display the congestion window plot showing both TCP connections."
+        },
+        {
+          number: 9,
+          title: "View Trace Files (Optional)",
+          content: "Examine the trace files for detailed packet-level analysis:",
+          code: "nano prog5.tr\nnano prog5.nam"
+        },
+        {
+          number: 10,
+          title: "Modify Parameters for Analysis",
+          content: "You can modify various parameters to observe different congestion behaviors:",
+          substeps: [
+            {
+              title: "Change Queue Size",
+              content: "Modify the queue limit between n(2) and n(3):"
+            },
+            {
+              title: "Adjust Bandwidth",
+              content: "Change link bandwidths to observe congestion effects:"
+            },
+            {
+              title: "Modify TCP Window Size",
+              content: "Experiment with different TCP window sizes:"
+            }
+          ]
+        }
+      ],
+      expectedOutput: [
+        "Congestion window data files (WinFile0.dat, WinFile1.dat)",
+        "Gnuplot script (plot_cwnd.gp) and PNG output (cwnd_plot.png)",
+        "Trace files (prog5.tr, prog5.nam) for detailed analysis",
+        "Visual congestion window plot showing TCP behavior over time",
+        "NAM animation file for network topology visualization"
+      ],
+      keyObservations: [
+        "Congestion windows show how TCP adjusts transmission rate based on network conditions",
+        "Different source-destination pairs exhibit different congestion behaviors",
+        "LAN configuration affects packet flow and congestion patterns",
+        "Queue sizes and bandwidth limitations impact congestion window dynamics",
+        "Error models simulate real-world network packet losses",
+        "Gnuplot visualization helps analyze TCP performance characteristics"
+      ]
+    }
+  },
+  {
+    id: 4,
+    title: "Experiment 4: Error Detecting Code using CRC-CCITT (16-bit)",
+    description: "Develop a program for error detecting code using CRC-CCITT (16 bits) to detect transmission errors in data communication.",
+    content: {
+      objective: "Implement Cyclic Redundancy Check (CRC) error detection using CRC-CCITT (16-bit polynomial) to verify data integrity during transmission and detect errors.",
+      softwareRequirements: [
+        "Java Development Kit (JDK) 8 or higher",
+        "Text Editor or IDE (Eclipse, IntelliJ IDEA, VS Code)",
+        "Command Line/Terminal"
+      ],
+      theory: {
+        introduction: "Cyclic Redundancy Check (CRC) is an error-detecting code commonly used in digital networks and storage devices to detect accidental changes to raw data. CRC-CCITT uses a 16-bit polynomial (x^16 + x^12 + x^5 + 1) for error detection.",
+        howItWorks: [
+          "The sender appends a checksum to the original message",
+          "The receiver performs the same calculation on the received data",
+          "If the calculated checksum matches zero, data is considered valid",
+          "If the calculated checksum is non-zero, an error is detected"
+        ],
+        advantages: [
+          "Simple to implement in hardware and software",
+          "Detects burst errors effectively",
+          "Low computational overhead",
+          "Widely used in communication protocols (Ethernet, WiFi, etc.)"
+        ]
+      },
+      steps: [
+        {
+          number: 1,
+          title: "Open Text Editor or IDE",
+          content: "Launch your preferred text editor or Java IDE."
+        },
+        {
+          number: 2,
+          title: "Create Java File",
+          content: "Create a new Java file named CRC1.java"
+        },
+        {
+          number: 3,
+          title: "Write the CRC Program",
+          content: "Copy and paste the following Java code into the file:",
+          javaCode: "import java.util.Scanner;\nimport java.io.*;\n\npublic class CRC1 {\n    public static void main(String args[]) {\n        Scanner sc = new Scanner(System.in);\n\n        // Input Data Stream\n        System.out.print(\"Enter message bits: \");\n        String message = sc.nextLine();\n        System.out.print(\"Enter generator: \");\n        String generator = sc.nextLine();\n\n        int data[] = new int[message.length() + generator.length() - 1];\n        int divisor[] = new int[generator.length()];\n\n        for (int i = 0; i < message.length(); i++) {\n            data[i] = Integer.parseInt(message.charAt(i) + \"\");\n        }\n\n        for (int i = 0; i < generator.length(); i++)\n            divisor[i] = Integer.parseInt(generator.charAt(i) + \"\");\n\n        // Calculation of CRC\n        for (int i = 0; i < message.length(); i++) {\n            if (data[i] == 1)\n                for (int j = 0; j < divisor.length; j++)\n                    data[i + j] ^= divisor[j];\n        }\n\n        // Display CRC\n        System.out.print(\"The checksum code is: \");\n        for (int i = 0; i < message.length(); i++)\n            data[i] = Integer.parseInt(message.charAt(i) + \"\");\n        for (int i = 0; i < data.length(); i++)\n            System.out.print(data[i]);\n        System.out.println();\n\n        // Check for input CRC code\n        System.out.print(\"Enter checksum code: \");\n        message = sc.nextLine();\n        System.out.print(\"Enter generator: \");\n        generator = sc.nextLine();\n        data = new int[message.length() + generator.length() - 1];\n        divisor = new int[generator.length()];\n        for (int i = 0; i < message.length(); i++)\n            data[i] = Integer.parseInt(message.charAt(i) + \"\");\n        for (int i = 0; i < generator.length(); i++)\n            divisor[i] = Integer.parseInt(generator.charAt(i) + \"\");\n\n        // Calculation of remainder\n        for (int i = 0; i < message.length(); i++) {\n            if (data[i] == 1)\n                for (int j = 0; j < divisor.length; j++)\n                    data[i + j] ^= divisor[j];\n        }\n\n        // Display validity of data\n        boolean valid = true;\n        for (int i = 0; i < data.length; i++)\n            if (data[i] == 1) {\n                valid = false;\n                break;\n            }\n\n        if (valid == true)\n            System.out.println(\"Data stream is valid\");\n        else\n            System.out.println(\"Data stream is invalid. CRC error occurred.\");\n    }\n}"
+        },
+        {
+          number: 4,
+          title: "Save the File",
+          content: "Save the file as CRC1.java in your working directory."
+        },
+        {
+          number: 5,
+          title: "Compile the Program",
+          content: "Open terminal/command prompt and compile the Java program:",
+          code: "javac CRC1.java"
+        },
+        {
+          number: 6,
+          title: "Run the Program",
+          content: "Execute the compiled program:",
+          code: "java CRC1"
+        },
+        {
+          number: 7,
+          title: "Test with Sample Data",
+          content: "Use the provided test cases to verify the program:",
+          testCases: [
+            {
+              input: "Message: 11010111100010101110100101\nGenerator: 110101",
+              output: "Checksum: 1101011110001010111010010111100\nValid data stream"
+            },
+            {
+              input: "Message: 11010111100010101110100101\nGenerator: 110101\nChecksum: 1101011110001010111010010111100\nGenerator: 1011",
+              output: "Invalid data stream - CRC error detected"
+            }
+          ]
+        },
+        {
+          number: 8,
+          title: "Experiment with Different Inputs",
+          content: "Try different message and generator combinations to understand CRC behavior:",
+          experiments: [
+            "Use different generator polynomials",
+            "Try messages with different lengths",
+            "Test with intentional bit errors",
+            "Compare detection capabilities of different polynomials"
+          ]
+        }
+      ],
+      expectedOutput: [
+        "CRC checksum generation for given message and generator",
+        "Error detection when incorrect generator is used",
+        "Successful validation when correct checksum and generator are provided",
+        "Clear indication of data validity or CRC errors"
+      ],
+      keyObservations: [
+        "CRC can detect single-bit errors, double-bit errors, and burst errors effectively",
+        "The choice of generator polynomial affects error detection capability",
+        "Longer generator polynomials generally provide better error detection",
+        "CRC is widely used in communication protocols for its efficiency",
+        "The same generator must be used for both encoding and decoding",
+        "CRC cannot correct errors, only detect them"
+      ],
+      applications: [
+        "Ethernet frames (CRC-32)",
+        "WiFi packets",
+        "ZIP file integrity checks",
+        "Digital storage devices",
+        "Communication protocols (HDLC, PPP, etc.)"
+      ]
+    }
+  },
+  {
+    id: 5,
+    title: "Experiment 5: Coming Soon",
+    description: "To be implemented"
+  },
+  {
+    id: 6,
+    title: "Experiment 6: Coming Soon",
+    description: "To be implemented"
+  },
+  {
+    id: 7,
+    title: "Experiment 7: Coming Soon",
+    description: "To be implemented"
+  },
+  {
+    id: 8,
+    title: "Experiment 8: Coming Soon",
+    description: "To be implemented"
+  },
+  {
+    id: 9,
+    title: "Experiment 9: Coming Soon",
+    description: "To be implemented"
+  },
+  {
+    id: 10,
+    title: "Experiment 10: Coming Soon",
+    description: "To be implemented"
+  }
+];
