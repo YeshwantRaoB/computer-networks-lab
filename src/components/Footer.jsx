@@ -77,7 +77,7 @@ const Footer = () => {
             <p className={`text-xs transition-colors duration-300 ${
               isDarkMode ? 'text-slate-500' : 'text-slate-400'
             }`}>
-              © {currentYear} Computer Networks Lab Manual. All rights reserved.
+              © {currentYear} Yeshwant Rao B. All rights reserved.
             </p>
           </div>
 
